@@ -103,7 +103,7 @@ pomerol = {
 }
 
 categories = {
-    "Medoc": left_bank,
+    "Médoc": left_bank,
     "Saint-Emilion": st_emilion,
     "Pomerol": pomerol,
     "Graves": graves,
@@ -168,17 +168,20 @@ class Scraper:
 
         wine_response = self.session.get(wine_url, headers=HEADERS)
         wine_soup = BeautifulSoup(wine_response.content, "html.parser")
-        max_vintage_str = wine_soup.find_all("a", {"class": "ola selected-vintage"})[
+        max_vintage_str = wine_soup.find_all("a", {"class": "ola"})[
             0
         ].text
         max_vintage = int(max_vintage_str)
+        print(max_vintage)
 
         self.prices_idealwine.loc[vineyard.name, "Category"] = vineyard.category
-        print(self.prices_idealwine)
+        print("Vintages:", range(max_vintage, self.min_vintage - 1, -1))
         for vintage in range(max_vintage, self.min_vintage - 1, -1):
-            wine_response = self.session.get(
-                wine_url.replace(max_vintage_str, str(vintage)), headers=HEADERS
-            )
+            transformed_url_list = wine_url.split('-')
+            transformed_url_list[2] = str(vintage)
+            transformed_url = '-'.join(transformed_url_list)
+            print(transformed_url)
+            wine_response = self.session.get(transformed_url, headers=HEADERS)
             wine_soup = BeautifulSoup(wine_response.content, "html.parser")
             try:
                 price = int(
@@ -189,6 +192,7 @@ class Scraper:
                 self.prices_idealwine.loc[vineyard.name, vintage] = price
             except:
                 self.prices_idealwine.loc[vineyard.name, vintage] = np.nan
+        print(vineyard.name, self.prices_idealwine.loc[vineyard.name])
         return
 
 
@@ -197,4 +201,4 @@ if __name__ == "__main__":
     scraper = Scraper(VINEYARD_LIST, 1950, num_workers=1)
     table = scraper.scrape()
     print(table.iloc[:5, -10:].to_string())
-    table.to_excel("../data/prices_feb_2022.xlsx", encoding="utf-16")
+    table.to_excel("../data/prices_april_23.xlsx", encoding="utf-16")
