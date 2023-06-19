@@ -121,7 +121,8 @@ VINEYARD_LIST = []
 for category in categories.keys():
     wines = categories[category]
     for vineyard_name in wines.keys():
-        VINEYARD_LIST.append(Vineyard(vineyard_name, wines[vineyard_name], category))
+        VINEYARD_LIST.append(
+            Vineyard(vineyard_name, wines[vineyard_name], category))
 
 
 class Scraper:
@@ -150,22 +151,12 @@ class Scraper:
                     total=len(self.vineyard_list),
                 )
             )
-        print("Scraping finished in ", int(time.time() - self.start_time), "s.\n")
+        print("Scraping finished in ", int(
+            time.time() - self.start_time), "s.\n")
         return self.prices_idealwine
 
     def scrape_vineyard(self, vineyard, retry_count=0):
         wine_url = copy.copy(vineyard.url)
-        # try:
-        #    response = self.session.get(page_url, headers=HEADERS)
-        # except:
-        #    retry_count += 1
-        #    if retry_count <= 3:
-        #        self.session = requests.Session()
-        #        self.scrape_vineyard(vineyard, retry_count)
-        #    else:
-        #        raise
-        # soup = BeautifulSoup(response.content, "html.parser")
-
         wine_response = self.session.get(wine_url, headers=HEADERS)
         wine_soup = BeautifulSoup(wine_response.content, "html.parser")
         max_vintage_str = wine_soup.find_all("a", {"class": "ola"})[
@@ -174,7 +165,8 @@ class Scraper:
         max_vintage = int(max_vintage_str)
         print(max_vintage)
 
-        self.prices_idealwine.loc[vineyard.name, "Category"] = vineyard.category
+        self.prices_idealwine.loc[vineyard.name,
+                                  "Category"] = vineyard.category
         print("Vintages:", range(max_vintage, self.min_vintage - 1, -1))
         for vintage in range(max_vintage, self.min_vintage - 1, -1):
             transformed_url_list = wine_url.split('-')
@@ -197,8 +189,7 @@ class Scraper:
 
 
 if __name__ == "__main__":
-    # Total review results on their site are conflicting, hardcode as the max tested value for now
     scraper = Scraper(VINEYARD_LIST, 1950, num_workers=1)
     table = scraper.scrape()
     print(table.iloc[:5, -10:].to_string())
-    table.to_excel("../data/prices_april_23.xlsx", encoding="utf-16")
+    table.to_excel("../data/prices_june_23.xlsx", encoding="utf-16")
